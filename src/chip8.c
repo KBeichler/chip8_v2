@@ -49,6 +49,9 @@ void emulate_cycle(chip8_t * chip8)
 void execute_opcode(chip8_t * chip8, uint16_t opcode)
 {
 
+    uint8_t idx = (opcode & 0xF00) >> 8;
+    uint8_t idy = (opcode & 0x0F0) >> 4;
+
     //switch on upper nibble
     switch ( opcode & 0xF000)
     {
@@ -67,20 +70,54 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
             }
             break;
         case 0x1000:
+            chip8->pc = opcode & 0x0FFF;
             break;
         case 0x2000:
+            chip8->stack[ ++(chip8->sp) ] = chip8->pc;
+            chip8->pc = opcode & 0x0FFF;
             break;
-        case 0x3000:
+        case 0x3000:      
+            if ( chip8->v[ idx ] == (opcode & 0xFF) ) chip8->pc += 2;
             break;
-        case 0x4000:
+        case 0x4000:     
+            if ( chip8->v[ idx ] != (opcode & 0xFF) ) chip8->pc += 2;
             break;
         case 0x5000:
+            if ( chip8->v[ idx ] == chip8->v[ idy ] ) chip8->pc += 2;
             break;
         case 0x6000:
+            chip8->v[idx] = opcode & 0x00FF;
             break;
         case 0x7000:
+            chip8->v[idx] += opcode & 0x00FF;
             break;
-        case 0x8000:
+        case 0x8000: // Logic and Arithemtic
+            switch (opcode & 0x000F)
+            {
+                case 0x0:
+                    chip8->v[idx] = chip8->v[idy];
+                    break;
+                case 0x1:
+                    break;
+                case 0x2:
+                    break;
+                case 0x3:
+                    break;
+                case 0x4:
+                    break;
+                case 0x5:
+                    break;
+                case 0x6:
+                    break;
+                case 0x7:
+                    break;
+                case 0xE:
+                    break;
+                default:
+                    break;
+
+            }
+            
             break;
         case 0x9000:
             break;
