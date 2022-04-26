@@ -39,8 +39,11 @@ typedef struct chip8_t{
 
 
 extern chip8_t *init_chip8(void);
+void close_chip8(chip8_t * chip8);
 
+void emulate_cycle(chip8_t * chip8);
 
+void execute_opcode(chip8_t * chip8, uint16_t opcode);
 
 
 
