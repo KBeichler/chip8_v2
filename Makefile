@@ -15,8 +15,8 @@ unity.o: $(TESTFOLDER)/unity.c $(TESTFOLDER)/unity.h
 	$(CC) $(CFLAGS) -c $(TESTFOLDER)/unity.c -o build/unity.o
 
 
-test: unity.o unit_test.o chip8.o
-	$(CC) $(CFLAGS) build/unity.o build/unit_test.o build/chip8.o -o build/test
+test: unity.o unit_test.o chip8.o io.o
+	$(CC) $(CFLAGS) build/unity.o build/io.o build/unit_test.o build/chip8.o -o build/test
 	build/test
 
 unit_test.o: $(TESTFOLDER)/unit_test.c
@@ -24,6 +24,9 @@ unit_test.o: $(TESTFOLDER)/unit_test.c
 
 chip8.o: src/chip8.c include/chip8.h
 	$(CC) $(CFLAGS) -c src/chip8.c -o build/chip8.o
+
+io.o: src/io.c include/io.h
+	$(CC) $(CFLAGS) -c src/io.c -o build/io.o
 
 
 clean:

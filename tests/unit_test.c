@@ -5,6 +5,8 @@
 
 chip8_t *chip8;
 
+extern const uint8_t CHIP8_FONT[80]; // get external font array from chip8.c
+
 void setUp(void)
 {
     chip8 = init_chip8();
@@ -17,9 +19,15 @@ void tearDown(void)
 
 void test_init()
 {
+    
+
     TEST_ASSERT_NOT_NULL(chip8);
     TEST_ASSERT_NOT_NULL(chip8->framebuffer);
     TEST_ASSERT_EQUAL(0, chip8->sp);
+    TEST_ASSERT_EQUAL(0x200, chip8->pc);
+
+    
+    TEST_ASSERT_EQUAL_INT8_ARRAY(CHIP8_FONT,chip8->mem,80);
 }
 // opcode tests
 void opcode_0(void)
@@ -44,7 +52,6 @@ void opcode_0(void)
     free(reference);
 
 }
-
 
 void opcode_1(void)
 {   
@@ -78,7 +85,6 @@ void opcode_3(void)
     TEST_ASSERT_EQUAL(0x102, chip8->pc);
 
 }
-
 
 void opcode_4(void)
 {
@@ -124,7 +130,6 @@ void opcode_7(void)
     TEST_ASSERT_EQUAL(0x15, chip8->v[0x5]);
 
 }
-
 
 void opcode_8(void)
 {
@@ -225,7 +230,6 @@ void opcode_8(void)
     TEST_ASSERT_EQUAL(0, chip8->v[0xf]);  
 }
 
-
 void opcode_9(void)
 {
 
@@ -259,6 +263,33 @@ void opcode_B(void)
 
 }
 
+
+void opcode_C(void)
+{
+    execute_opcode(chip8, 0xC0FF);
+    execute_opcode(chip8, 0xC1FF);
+    TEST_ASSERT_NOT_EQUAL(chip8->v[0], chip8->v[1]);
+
+}
+// todo D
+
+void opcode_E(void)
+{
+    chip8->pc = 0x100;
+    chip8->v[0] = 0x8;
+    chip8->k = 0x8;
+    TEST_ASSERT_NOT_EQUAL(0x102, chip8->pc);
+    execute_opcode(chip8, 0xE09E);
+    TEST_ASSERT_EQUAL(0x102, chip8->pc);
+
+    chip8->k = 0x9;
+    TEST_ASSERT_NOT_EQUAL(0x104, chip8->pc);
+    execute_opcode(chip8, 0xE0A1);
+    TEST_ASSERT_EQUAL(0x104, chip8->pc);
+
+}
+
+
 void opcode_F(void)
 {
 
@@ -266,7 +297,7 @@ void opcode_F(void)
     execute_opcode(chip8, 0xFA07);
     TEST_ASSERT_EQUAL(0x99, chip8->v[0x0A]);
 
-    // Fx0A
+    // TODO Fx0A
 
     //
     chip8->v[0xE] = 0x33;
@@ -282,12 +313,37 @@ void opcode_F(void)
     execute_opcode(chip8, 0xF11E);
     TEST_ASSERT_EQUAL(0xAF, chip8->i);
 
+    chip8->v[0x5] = 0x0F;
+    chip8->i = 0x00;
+    execute_opcode(chip8, 0xF529);
+    TEST_ASSERT_EQUAL(5*0xf, chip8->i);
+    TEST_ASSERT_EQUAL_INT8_ARRAY(&CHIP8_FONT[75],&chip8->mem[chip8->i],5);
+
+    chip8->v[0x6] = 123;
+    chip8->i = 0x600;
+    execute_opcode(chip8, 0xF633);
+    uint8_t test[4] = {1,2,3,4};
+    TEST_ASSERT_EQUAL_INT8_ARRAY(test, &chip8->mem[chip8->i],3);
+
+    chip8->v[0] = 0x1;
+    chip8->v[1] = 0x2;
+    chip8->v[2] = 0x3;
+    chip8->v[3] = 0x4;
+    chip8->i = 0x700;
+    execute_opcode(chip8, 0xF455);
+    TEST_ASSERT_EQUAL_INT8_ARRAY(test, &chip8->mem[chip8->i],4);        
+
+    chip8->v[2] = 0x00;
+    execute_opcode(chip8, 0xF465);
+    TEST_ASSERT_EQUAL(0x3, chip8->v[2]);
+
 }
 
 int main (void)
 {
     
     UNITY_BEGIN();
+    printf("\n\t----Start OpCode Tests----\n");
     RUN_TEST(test_init);
     RUN_TEST(opcode_0);
     RUN_TEST(opcode_1);
@@ -301,6 +357,13 @@ int main (void)
     RUN_TEST(opcode_9);
     RUN_TEST(opcode_A);
     RUN_TEST(opcode_B);
+    RUN_TEST(opcode_C);
+    RUN_TEST(opcode_E);
     RUN_TEST(opcode_F);
+    printf("\n\t---- End OpCode Tests ----\n");
+    printf("\n\t----  Start IO Tests  ----\n");
+
+    printf("\n\t----   End IO Tests   ----\n");
+
     return UNITY_END();
 }

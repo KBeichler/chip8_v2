@@ -26,6 +26,8 @@ const uint8_t CHIP8_FONT[80] = {
 chip8_t *init_chip8(void)
 {
     chip8_t * ptr = (chip8_t *) calloc(1, sizeof(chip8_t));
+    memcpy(ptr->mem, CHIP8_FONT, 80);
+    ptr->pc = 0x200;
 
     
     return ptr;
@@ -140,13 +142,26 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
         case 0xB000: // JP V0, addr
             chip8->pc = (uint16_t) ( (opcode & 0x0FFF) + chip8->v[0] );
             break;
-        case 0xC000: // RND Vx byte
+        case 0xC000: // RND Vx & byte
+            {
+                uint8_t num = (uint8_t) rand();
+                chip8->v[idx] = num & (opcode & 0xFF);
+            }
             break;
         case 0xD000: // DRW
             break;
         case 0xE000: // SKIP IF KEY
-            if      ( (opcode & 0x00FF) == 0x9E) ;
-            else if ( (opcode & 0x00FF) == 0xA1) ;
+            switch (opcode & 0x00FF)
+            {
+                case 0x9E:
+                    if (chip8->v[idx] == chip8->k) chip8->pc += 2;
+                    break;
+                case 0xA1:
+                    if (chip8->v[idx] != chip8->k) chip8->pc += 2;
+                    break;
+                default:
+                    break;
+            }
             break;
         case 0xF000: // HW
             switch (opcode & 0x00FF)
@@ -165,13 +180,25 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
                 case 0x1E: // ADD I Vx
                     chip8->i += chip8->v[ idx ];
                     break;
-                case 0x29:
+                case 0x29: // Get adress of Sprite Vx
+                    chip8->i = chip8->v[ idx ] * 5;
                     break;
-                case 0x33:
+                case 0x33: // store BCD of Vx at mem[i]                   
+                    chip8->mem[chip8->i] = chip8->v[idx] / 100;
+                    chip8->mem[chip8->i+1] = (chip8->v[idx]%100) / 10;
+                    chip8->mem[chip8->i+2] = chip8->v[idx] % 10;                    
                     break;
                 case 0x55:
+                    for (uint8_t j = 0; j <= idx; j++)
+                    {
+                        chip8->mem[ chip8->i + j] = chip8->v[j];
+                    }
                     break;
                 case 0x65:
+                    for (uint8_t j = 0; j <= idx; j++)
+                    {
+                        chip8->v[j] = chip8->mem[ chip8->i + j]; 
+                    }
                     break;
                 default:
                     break;

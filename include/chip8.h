@@ -14,6 +14,7 @@ typedef struct{
     uint8_t mem[0x1000];
     uint16_t stack[16];
     uint8_t framebuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+    uint8_t k; // KEY buffer
 
     //registers
     // General Purpose Registers V0 to VF
