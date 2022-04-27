@@ -94,44 +94,88 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
         case 0x8000: // Logic and Arithemtic
             switch (opcode & 0x000F)
             {
-                case 0x0:
+                case 0x0: // LD Vx Vy
                     chip8->v[idx] = chip8->v[idy];
                     break;
-                case 0x1:
+                case 0x1: // OR Vx Vy
+                    chip8->v[idx] |= chip8->v[idy];
                     break;
-                case 0x2:
+                case 0x2: // AND Vx Vy
+                    chip8->v[idx] &= chip8->v[idy];
                     break;
-                case 0x3:
+                case 0x3: // XOr Vx Vy
+                    chip8->v[idx] ^= chip8->v[idy];
                     break;
-                case 0x4:
+                case 0x4: // ADD Vx Vy -> carry VF
+                    chip8->v[0xF] = (chip8->v[idx] + chip8->v[idy]) > 0xFF;
+                    chip8->v[idx] += chip8->v[idy];
                     break;
-                case 0x5:
+                case 0x5: // SUB Vx Vy - VF = not Borrow
+                    chip8->v[0xF] = (chip8->v[idx] > chip8->v[idy]);
+                    chip8->v[idx] -= chip8->v[idy];
                     break;
-                case 0x6:
+                case 0x6: // SHR Vx ( div by 2 ) -> VF = LSB
+                    chip8->v[0xF] = chip8->v[idx] & 0x1;
+                    chip8->v[idx] >>= 1;
                     break;
-                case 0x7:
+                case 0x7: // SUBN Vy Vx - VF = not Borrow
+                    chip8->v[0xF] = (chip8->v[idx] < chip8->v[idy]);
+                    chip8->v[idx] = chip8->v[idy] - chip8->v[idx];
                     break;
-                case 0xE:
+                case 0xE: // SHL Vx ( * 2 ) - VF = MSB
+                    chip8->v[0xF] = (chip8->v[idx] & 0x80) != 0;
+                    chip8->v[idx] <<= 1;
+                    break;
+                default: 
+                    // error
+                    break;
+            }            
+            break;
+        case 0x9000: // SNE
+            if ( chip8->v[ idx ] != chip8->v[ idy ] ) chip8->pc += 2;
+            break;
+        case 0xA000: // LD I
+            chip8->i = opcode & 0x0FFF;
+            break;
+        case 0xB000: // JP V0, addr
+            chip8->pc = (uint16_t) ( (opcode & 0x0FFF) + chip8->v[0] );
+            break;
+        case 0xC000: // RND Vx byte
+            break;
+        case 0xD000: // DRW
+            break;
+        case 0xE000: // SKIP IF KEY
+            if      ( (opcode & 0x00FF) == 0x9E) ;
+            else if ( (opcode & 0x00FF) == 0xA1) ;
+            break;
+        case 0xF000: // HW
+            switch (opcode & 0x00FF)
+            {
+                case 0x07: // LD Vx DT
+                    chip8->v[idx] = chip8->dt;
+                    break;
+                case 0x0A: // LD Vx k - keypress into Vx
+                    break;
+                case 0x15: // LD DT Vx
+                    chip8->dt = chip8->v[idx];
+                    break;
+                case 0x18: // LD ST Vx 
+                    chip8->st = chip8->v[idx];
+                    break;
+                case 0x1E: // ADD I Vx
+                    chip8->i += chip8->v[ idx ];
+                    break;
+                case 0x29:
+                    break;
+                case 0x33:
+                    break;
+                case 0x55:
+                    break;
+                case 0x65:
                     break;
                 default:
                     break;
-
             }
-            
-            break;
-        case 0x9000:
-            break;
-        case 0xA000:
-            break;
-        case 0xB000:
-            break;
-        case 0xC000:
-            break;
-        case 0xD000:
-            break;
-        case 0xE000:
-            break;
-        case 0xF000:
             break;
         default:
             break;

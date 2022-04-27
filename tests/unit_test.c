@@ -128,12 +128,159 @@ void opcode_7(void)
 
 void opcode_8(void)
 {
+    // LD
     chip8->v[0x5] = 0x10;
     chip8->v[0x6] = 0xFF;
 
     execute_opcode(chip8, 0x8560);
     TEST_ASSERT_EQUAL(0xFF, chip8->v[0x5]);
     TEST_ASSERT_EQUAL(0xFF, chip8->v[0x6]);
+
+    // OR
+    chip8->v[0x1] = 0x10;
+    chip8->v[0x2] = 0x04;
+
+    execute_opcode(chip8, 0x8121);
+    TEST_ASSERT_EQUAL(0x10 | 0x04, chip8->v[0x1]);
+
+    // AND
+    chip8->v[0x1] = 0x0F;
+    chip8->v[0x2] = 0x04;
+
+    execute_opcode(chip8, 0x8122);
+    TEST_ASSERT_EQUAL(0x04&0x0F, chip8->v[0x1]);
+
+    // XOR
+    chip8->v[0x1] = 0x0F;
+    chip8->v[0x2] = 0x04;
+
+    execute_opcode(chip8, 0x8123);
+    TEST_ASSERT_EQUAL(0x04^0x0F, chip8->v[0x1]);
+
+    // ADD
+    chip8->v[0x1] = 0x0F;
+    chip8->v[0x2] = 0x04;
+
+    execute_opcode(chip8, 0x8124);
+    TEST_ASSERT_EQUAL(0x04+0x0F, chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(0, chip8->v[0xf]);
+
+    chip8->v[0x1] = 0xFE;
+    chip8->v[0x2] = 0x04;
+
+    execute_opcode(chip8, 0x8124);
+    TEST_ASSERT_EQUAL( (0x04+0xFE) & 0xFF, chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(1, chip8->v[0xf]);
+    
+    // SUB
+    chip8->v[0x1] = 0x0F;
+    chip8->v[0x2] = 0x04;
+    execute_opcode(chip8, 0x8125);
+    TEST_ASSERT_EQUAL(0x0F-0x04, chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(1, chip8->v[0xf]);
+
+    chip8->v[0x3] = 0x0F;
+    chip8->v[0x4] = 0xF0;
+    execute_opcode(chip8, 0x8345);
+    TEST_ASSERT_EQUAL( (uint8_t)(0x0F-0xF0), chip8->v[0x3]);
+    TEST_ASSERT_EQUAL(0, chip8->v[0xf]);
+
+    // SHR
+    chip8->v[0x1] = 0x0F;
+    chip8->v[0x2] = 0x04;
+    execute_opcode(chip8, 0x8126);
+    TEST_ASSERT_EQUAL(0xF/2, chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(1, chip8->v[0xf]);   
+
+    chip8->v[0x1] = 0x08;
+    chip8->v[0x2] = 0x04;
+    execute_opcode(chip8, 0x8126);
+    TEST_ASSERT_EQUAL(0x8/2, chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(0, chip8->v[0xf]);  
+
+    // SUBN
+    chip8->v[0x1] = 0x0F;
+    chip8->v[0x2] = 0x04;
+    execute_opcode(chip8, 0x8127);
+    TEST_ASSERT_EQUAL((uint8_t) (0x04-0x0F), chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(0, chip8->v[0xf]);
+
+    chip8->v[0x3] = 0x0F;
+    chip8->v[0x4] = 0xF0;
+    execute_opcode(chip8, 0x8347);
+    TEST_ASSERT_EQUAL( (uint8_t)(0xF0-0x0F), chip8->v[0x3]);
+    TEST_ASSERT_EQUAL(1, chip8->v[0xf]);
+
+    // SNE
+    chip8->v[0x1] = 0x81;
+    chip8->v[0x2] = 0x04;
+    execute_opcode(chip8, 0x812E);
+    TEST_ASSERT_EQUAL((uint8_t)(0x81<<1), chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(1, chip8->v[0xf]);   
+
+    chip8->v[0x1] = 0x71;
+    chip8->v[0x2] = 0x04;
+    execute_opcode(chip8, 0x812E);
+    TEST_ASSERT_EQUAL((uint8_t) (0x71<<1), chip8->v[0x1]);
+    TEST_ASSERT_EQUAL(0, chip8->v[0xf]);  
+}
+
+
+void opcode_9(void)
+{
+
+    chip8->v[0x1] = 0x71;
+    chip8->v[0x2] = 0x71;
+    chip8->v[0x3] = 0x70;
+    chip8->pc = 0x100;
+    execute_opcode(chip8, 0x9120);
+    TEST_ASSERT_EQUAL(0x100, chip8->pc);
+
+    execute_opcode(chip8, 0x9230);
+    TEST_ASSERT_EQUAL(0x102, chip8->pc);
+
+
+}
+
+void opcode_A(void)
+{
+    chip8->i = 0x123;
+    execute_opcode(chip8, 0xA999);
+    TEST_ASSERT_EQUAL(0x999, chip8->i);
+
+}
+
+void opcode_B(void)
+{
+    chip8->v[0] = 0xFF;
+    chip8->pc = 0x100;
+    execute_opcode(chip8, 0xB200);
+    TEST_ASSERT_EQUAL(0x2FF, chip8->pc);
+
+}
+
+void opcode_F(void)
+{
+
+    chip8->dt = 0x99;
+    execute_opcode(chip8, 0xFA07);
+    TEST_ASSERT_EQUAL(0x99, chip8->v[0x0A]);
+
+    // Fx0A
+
+    //
+    chip8->v[0xE] = 0x33;
+    execute_opcode(chip8, 0xFE15);
+    TEST_ASSERT_EQUAL(0x33, chip8->dt);
+
+    chip8->v[0x9] = 0x05;
+    execute_opcode(chip8, 0xF918);
+    TEST_ASSERT_EQUAL(0x05, chip8->st);
+
+    chip8->v[0x1] = 0x0F;
+    chip8->i = 0xA0;
+    execute_opcode(chip8, 0xF11E);
+    TEST_ASSERT_EQUAL(0xAF, chip8->i);
 
 }
 
@@ -151,5 +298,9 @@ int main (void)
     RUN_TEST(opcode_6);
     RUN_TEST(opcode_7);
     RUN_TEST(opcode_8);
+    RUN_TEST(opcode_9);
+    RUN_TEST(opcode_A);
+    RUN_TEST(opcode_B);
+    RUN_TEST(opcode_F);
     return UNITY_END();
 }

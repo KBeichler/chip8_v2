@@ -9,7 +9,7 @@
 #define SCREEN_WIDTH    64
 
 
-typedef struct chip8_t{
+typedef struct{
     //HW
     uint8_t mem[0x1000];
     uint16_t stack[16];
