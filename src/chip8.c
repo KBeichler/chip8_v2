@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
-
+#define COLOR 0xFFFFFFFF
 const uint8_t CHIP8_FONT[80] = {
 0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -22,6 +23,33 @@ const uint8_t CHIP8_FONT[80] = {
 0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
+
+uint8_t draw_sprite(uint16_t opcode, uint16_t x, uint16_t y, chip8_t * chip8)
+{
+    // decode pos
+    uint16_t start = chip8->i;
+    uint8_t n = opcode & 0xF;
+    y = y * SCREEN_WIDTH;
+    uint8_t sprite;
+    uint8_t coll = 0;
+
+    uint16_t currpxl = 0;
+    for (uint16_t i = 0; i < n; i++)
+    {
+        sprite = chip8->mem[start+i];
+        for (uint8_t j = 0; j < 8; j++)
+        {
+            currpxl = x+j+y+ (i*SCREEN_WIDTH);
+            if (currpxl > SCREEN_HEIGHT*SCREEN_WIDTH) currpxl = currpxl % (SCREEN_HEIGHT*SCREEN_WIDTH);
+            bool pix = !!(sprite & (0x80 >> j)); // get first pixel of sprite
+            if ( !!( chip8->framebuffer[currpxl]) == pix ) coll=1 ;
+            if (pix) chip8->framebuffer[currpxl] ^= COLOR;
+        }
+
+    }
+    return coll;
+
+}
 
 chip8_t *init_chip8(uint32_t * framebuffer)
 {
@@ -42,8 +70,12 @@ void close_chip8(chip8_t * chip8)
     free(chip8);
 }
 
+
 void emulate_cycle(chip8_t * chip8)
 {
+
+
+
     uint16_t opcode = (chip8->mem[chip8->pc++] << 8);
     opcode  |= chip8->mem[chip8->pc++];
     execute_opcode(chip8, opcode);
@@ -151,6 +183,7 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
             }
             break;
         case 0xD000: // DRW
+            chip8->v[0xF] = draw_sprite(opcode,chip8->v[idx],chip8->v[idy],chip8);
             break;
         case 0xE000: // SKIP IF KEY
             switch (opcode & 0x00FF)
@@ -172,6 +205,7 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
                     chip8->v[idx] = chip8->dt;
                     break;
                 case 0x0A: // LD Vx k - keypress into Vx
+                    chip8->request_input = 1;
                     break;
                 case 0x15: // LD DT Vx
                     chip8->dt = chip8->v[idx];

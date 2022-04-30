@@ -27,6 +27,10 @@ chip8.o: src/chip8.c include/chip8.h
 io.o: src/io.c include/io.h
 	$(CC) $(CFLAGS) -c src/io.c -o build/io.o
 
+main: chip8.o io.o 
+	$(CC) $(CFLAGS) -c src/main.c -o build/main.o
+	$(CC) $(CFLAGS) build/main.o build/io.o build/chip8.o $(LFLAGS) -o build/main
+	build/main
 
 clean:
 	rm -f build/

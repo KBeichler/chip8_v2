@@ -14,7 +14,7 @@ void window_init(uint16_t screen_height, uint16_t screen_width)
     // SDL Main Window Init
     SDL_Init(SDL_INIT_VIDEO);   
     //create windows with *5 pixel sclaing
-    mainWindow = SDL_CreateWindow("SDL2 TEST",SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_width * 5, screen_height * 5, 0);    
+    mainWindow = SDL_CreateWindow("SDL2 TEST",SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_width * 10, screen_height * 10, 0);    
     // create renderer for current window and set render size
     mainRenderer = SDL_CreateRenderer(mainWindow, -1, 0);
     SDL_RenderSetLogicalSize(mainRenderer, screen_width, screen_height);
@@ -91,74 +91,74 @@ uint8_t window_getIO(void)
         switch (event.type)
         {
                 case SDL_QUIT:
-                return key = 0xFF;
+                        return key = 0xFF;
                 case SDL_KEYDOWN:
-                        switch (event.key.keysym.sym){
-                case SDLK_1:        
-                key = 0x1;
-                break;
-
-                case SDLK_2:
-                key = 0x2;
+                    switch (event.key.keysym.sym){
+                        case SDLK_1:        
+                        key = 0x1;
                         break;
 
-                case SDLK_3:
-                key = 0x3;
-                        break;
+                        case SDLK_2:
+                        key = 0x2;
+                                break;
 
-                case SDLK_4:
-                key = 0xc;
-                        break;
+                        case SDLK_3:
+                        key = 0x3;
+                                break;
 
-                case SDLK_q:
-                key = 0x4;
-                        break;
+                        case SDLK_4:
+                        key = 0xc;
+                                break;
 
-                case SDLK_w:
-                key = 0x5;
-                        break;
+                        case SDLK_q:
+                        key = 0x4;
+                                break;
 
-                case SDLK_e:
-                key = 0x6;
-                        break;
+                        case SDLK_w:
+                        key = 0x5;
+                                break;
 
-                case SDLK_r:
-                key = 0xD;
-                        break;
+                        case SDLK_e:
+                        key = 0x6;
+                                break;
 
-                case SDLK_a:
-                key = 0x7;
-                        break;
+                        case SDLK_r:
+                        key = 0xD;
+                                break;
 
-                case SDLK_s:
-                key = 0x8;
-                        break;
+                        case SDLK_a:
+                        key = 0x7;
+                                break;
 
-                case SDLK_d:
-                key = 0x9;
-                        break;
+                        case SDLK_s:
+                        key = 0x8;
+                                break;
 
-                case SDLK_f:
-                key = 0xe;
-                        break;
+                        case SDLK_d:
+                        key = 0x9;
+                                break;
 
-                case SDLK_y:
-                key = 0xa;
-                        break;
+                        case SDLK_f:
+                        key = 0xe;
+                                break;
 
-                case SDLK_x:
-                key = 0x0;
-                        break;
+                        case SDLK_y:
+                        key = 0xa;
+                                break;
 
-                case SDLK_c:
-                key = 0xb;
-                        break;
+                        case SDLK_x:
+                        key = 0x0;
+                                break;
 
-                case SDLK_v:
-                key = 0xf;
-                        break;
-                default:
-                key = 0xAF;
+                        case SDLK_c:
+                        key = 0xb;
+                                break;
+
+                        case SDLK_v:
+                        key = 0xf;
+                                break;
+                        default:
+                        key = 0xAF;
 
                 }
         }  
