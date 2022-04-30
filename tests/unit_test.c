@@ -2,6 +2,8 @@
 #include <chip8.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <io.h>
+
 
 chip8_t *chip8;
 
@@ -9,11 +11,14 @@ extern const uint8_t CHIP8_FONT[80]; // get external font array from chip8.c
 
 void setUp(void)
 {
-    chip8 = init_chip8();
+    uint32_t *buffer = malloc(sizeof(uint32_t) *SCREEN_HEIGHT * SCREEN_WIDTH);
+    chip8 = init_chip8(buffer);
+
 }
 
 void tearDown(void)
 {
+    free(chip8->framebuffer);
     close_chip8(chip8);
 }
 
@@ -27,7 +32,7 @@ void test_init()
     TEST_ASSERT_EQUAL(0x200, chip8->pc);
 
     
-    TEST_ASSERT_EQUAL_INT8_ARRAY(CHIP8_FONT,chip8->mem,80);
+    TEST_ASSERT_EQUAL_INT8_ARRAY(CHIP8_FONT,&chip8->mem[FONT_OFFSET],80);
 }
 // opcode tests
 void opcode_0(void)
@@ -44,10 +49,10 @@ void opcode_0(void)
     TEST_ASSERT_EQUAL(1, chip8->sp);
 
     // TEST CLEAR SCREEN
-    chip8->framebuffer[5][0] = 100; // set pixel on screen
+    chip8->framebuffer[5*SCREEN_WIDTH] = 100; // set pixel on screen
     execute_opcode(chip8, 0x00E0);  // call clear
     // get empty reference array to compare to
-    uint8_t *reference = (uint8_t *) calloc(sizeof(uint8_t), SCREEN_HEIGHT*SCREEN_WIDTH);
+    uint32_t *reference = (uint32_t *) calloc(sizeof(uint32_t), SCREEN_HEIGHT*SCREEN_WIDTH);
     TEST_ASSERT_EQUAL_INT8_ARRAY(reference, chip8->framebuffer, SCREEN_HEIGHT*SCREEN_WIDTH);
     free(reference);
 
@@ -316,7 +321,7 @@ void opcode_F(void)
     chip8->v[0x5] = 0x0F;
     chip8->i = 0x00;
     execute_opcode(chip8, 0xF529);
-    TEST_ASSERT_EQUAL(5*0xf, chip8->i);
+    TEST_ASSERT_EQUAL((5*0xf) + FONT_OFFSET, chip8->i);
     TEST_ASSERT_EQUAL_INT8_ARRAY(&CHIP8_FONT[75],&chip8->mem[chip8->i],5);
 
     chip8->v[0x6] = 123;
@@ -336,6 +341,68 @@ void opcode_F(void)
     chip8->v[2] = 0x00;
     execute_opcode(chip8, 0xF465);
     TEST_ASSERT_EQUAL(0x3, chip8->v[2]);
+
+}
+
+void window_test(void)
+{
+    uint32_t *ptr = chip8->framebuffer; 
+    window_init(32, 64);
+    chip8->framebuffer = window_get_framebuffer();
+    for (uint8_t i = 0; i < 64; i++)
+    {
+        chip8->framebuffer[i] = 0xFFFFFFFF;
+        chip8->framebuffer[i+ 1*64] = 0xFFFFFFFF;
+        chip8->framebuffer[i+ 31*64] = 0xFFFFFFFF;
+        //window_drawFrame(chip8->framebuffer);
+        window_show();
+        window_delay(50);
+    }
+    
+    window_close();
+    chip8->framebuffer = ptr;
+}
+
+void key_test(void)
+{
+    uint32_t *ptr = chip8->framebuffer; 
+    window_init(32, 64);
+    chip8->framebuffer = window_get_framebuffer();
+
+    printf("press Key 1\n");
+    uint8_t err = 0;
+    uint8_t key = 0;
+    while (key != 1 && err < 255)
+    {
+        key = window_getIO() ;
+        err++;
+        window_delay(50);
+    }
+    TEST_ASSERT_NOT_EQUAL(255, err);
+    printf("press Key 2\n");
+    err = 0;
+    key = 0;
+    while (key != 2 && err < 255)
+    {
+        key = window_getIO() ;
+        err++;
+        window_delay(50);
+    }
+    TEST_ASSERT_NOT_EQUAL(255, err);
+    printf("press Key 3\n");
+    err = 0;
+    key = 0;
+    while (key != 3 && err < 255)
+    {
+        key = window_getIO() ;
+        err++;
+        window_delay(50);
+    }
+    TEST_ASSERT_NOT_EQUAL(255, err);
+    
+    
+    window_close();
+    chip8->framebuffer = ptr;
 
 }
 
@@ -362,7 +429,8 @@ int main (void)
     RUN_TEST(opcode_F);
     printf("\n\t---- End OpCode Tests ----\n");
     printf("\n\t----  Start IO Tests  ----\n");
-
+    RUN_TEST(window_test);
+    RUN_TEST(key_test);
     printf("\n\t----   End IO Tests   ----\n");
 
     return UNITY_END();

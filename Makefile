@@ -1,12 +1,11 @@
-INCLUDEDIR=include
+INCLUDEDIRS=-Iinclude -I/usr/include/SDL2 -Itests
 CC=gcc
-CFLAGS=-g -Wall -I$(INCLUDEDIR) -Itests -lSDL2 -lSDL2main
+CFLAGS=-g -Wall $(INCLUDEDIRS)  
+LFLAGS=-lSDL2main -lSDL2
 TESTFOLDER=./tests
 
 
 all: test
-
-
 
 init:
 	mkdir -p build
@@ -15,8 +14,8 @@ unity.o: $(TESTFOLDER)/unity.c $(TESTFOLDER)/unity.h
 	$(CC) $(CFLAGS) -c $(TESTFOLDER)/unity.c -o build/unity.o
 
 
-test: unity.o unit_test.o chip8.o io.o
-	$(CC) $(CFLAGS) build/unity.o build/io.o build/unit_test.o build/chip8.o -o build/test
+test: unity.o chip8.o io.o unit_test.o
+	$(CC) $(CFLAGS) build/unity.o build/io.o build/unit_test.o build/chip8.o $(LFLAGS) -o build/test
 	build/test
 
 unit_test.o: $(TESTFOLDER)/unit_test.c

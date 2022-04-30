@@ -23,10 +23,11 @@ const uint8_t CHIP8_FONT[80] = {
 0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-chip8_t *init_chip8(void)
+chip8_t *init_chip8(uint32_t * framebuffer)
 {
     chip8_t * ptr = (chip8_t *) calloc(1, sizeof(chip8_t));
-    memcpy(ptr->mem, CHIP8_FONT, 80);
+    memcpy(&ptr->mem[FONT_OFFSET], CHIP8_FONT, 80);
+    ptr->framebuffer = framebuffer;
     ptr->pc = 0x200;
 
     
@@ -37,6 +38,7 @@ chip8_t *init_chip8(void)
 
 void close_chip8(chip8_t * chip8)
 {
+
     free(chip8);
 }
 
@@ -181,7 +183,7 @@ void execute_opcode(chip8_t * chip8, uint16_t opcode)
                     chip8->i += chip8->v[ idx ];
                     break;
                 case 0x29: // Get adress of Sprite Vx
-                    chip8->i = chip8->v[ idx ] * 5;
+                    chip8->i = (chip8->v[ idx ] * 5) + FONT_OFFSET;
                     break;
                 case 0x33: // store BCD of Vx at mem[i]                   
                     chip8->mem[chip8->i] = chip8->v[idx] / 100;

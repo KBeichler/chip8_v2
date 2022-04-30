@@ -8,12 +8,14 @@
 #define SCREEN_HEIGHT   32
 #define SCREEN_WIDTH    64
 
+#define FONT_OFFSET 2
+
 
 typedef struct{
     //HW
     uint8_t mem[0x1000];
     uint16_t stack[16];
-    uint8_t framebuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+    uint32_t *framebuffer;
     uint8_t k; // KEY buffer
 
     //registers
@@ -39,7 +41,7 @@ typedef struct{
 
 
 
-extern chip8_t *init_chip8(void);
+extern chip8_t *init_chip8(uint32_t * framebuffer);
 void close_chip8(chip8_t * chip8);
 
 void emulate_cycle(chip8_t * chip8);
